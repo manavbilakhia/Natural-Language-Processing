@@ -17,7 +17,9 @@ def start_pad(c):
 def ngrams(c, text):
     ''' Returns the ngrams of the text as tuples where the first element is
         the length-c context and the second is the character '''
-    pass
+    text = start_pad(c) + text
+    return [(text[i:i+c], text[i+c]) for i in range(len(text)-c)]
+
 
 def create_ngram_model(model_class, path, c=2, k=0):
     ''' Creates and returns a new n-gram model trained on the entire text
@@ -44,19 +46,29 @@ class NgramModel(object):
     ''' A basic n-gram model using add-k smoothing '''
 
     def __init__(self, c, k):
-        pass
+        ''' Initializes the n-gram model with the context length c and the
+            smoothing parameter k '''
+        self.c = c
+        self.k = k
+        self.ngrams = {}
 
     def get_vocab(self):
         ''' Returns the set of characters in the vocab '''
-        pass
+        return set(self.ngrams.keys())
 
     def update(self, text):
         ''' Updates the model n-grams based on text '''
-        pass
+        for context, char in ngrams(self.c, text):
+            if context not in self.ngrams:
+                self.ngrams[context] = {}
+            if char not in self.ngrams[context]:
+                self.ngrams[context][char] = 0
+            self.ngrams[context][char] += 1
 
     def prob(self, context, char):
         ''' Returns the probability of char appearing after context '''
-        pass
+        if context not in self.ngrams:
+            return 0
 
     def random_char(self, context):
         ''' Returns a random character based on the given context and the 
@@ -81,15 +93,21 @@ class NgramModelWithInterpolation(NgramModel):
     ''' An n-gram model with interpolation '''
 
     def __init__(self, c, k):
-        pass
+        ''' Initializes the n-gram model with the context length c and the
+            smoothing parameter k '''
+        super().__init__(c, k)
+        self.ngrams = {}
 
     def get_vocab(self):
-        pass
+        ''' Returns the set of characters in the vocab '''
+        return set(self.ngrams.keys())
 
     def update(self, text):
+        ''' Updates the model n-grams based on text '''
         pass
 
     def prob(self, context, char):
+        ''' Returns the probability of char appearing after context '''
         pass
 
 ################################################################################
