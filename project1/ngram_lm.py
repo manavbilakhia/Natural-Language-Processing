@@ -69,21 +69,53 @@ class NgramModel(object):
         ''' Returns the probability of char appearing after context '''
         if context not in self.ngrams:
             return 0
+        context_count = sum(self.ngrams[context].values()) + self.k * len(self.ngrams[context])
+        char_count = self.ngrams[context].get(char, 0) + self.k
+        return char_count / context_count
 
     def random_char(self, context):
         ''' Returns a random character based on the given context and the 
             n-grams learned by this model '''
-        pass
+        if context not in self.ngrams:
+            return None
+        context_count = sum(self.ngrams[context].values()) + self.k * len(self.ngrams[context])
+        char_probs = {}
+        for char in self.ngrams[context]:
+            char_probs[char] = (self.ngrams[context][char] + self.k) / context_count
+        r = random.random()
+        p_total = 0.0
+        for char, p in char_probs.items():
+            p_total += p
+            if r < p_total:
+                return char
 
     def random_text(self, length):
         ''' Returns text of the specified character length based on the
             n-grams learned by this model '''
-        pass
+        context = " " * (self.c - 1)
+        text = ""
+        for i in range(length):
+            char = self.random_char(context)
+            if char is None:
+                return None
+            text += char
+            context = context[1:] + char
+        return text
 
     def perplexity(self, text):
         ''' Returns the perplexity of text based on the n-grams learned by
             this model '''
-        pass
+        n = len(text)
+        context = " " * (self.c - 1)
+        prob = 1.0
+        for i in range(n):
+            char = text[i]
+            p = self.prob(context, char)
+            if p == 0:
+                return float('inf')
+            prob *= (1/p)
+            context = context[1:] + char
+        return pow(prob, -1/n)
 
 ################################################################################
 # N-Gram Model with Interpolation
@@ -95,13 +127,10 @@ class NgramModelWithInterpolation(NgramModel):
     def __init__(self, c, k):
         ''' Initializes the n-gram model with the context length c and the
             smoothing parameter k '''
-        super().__init__(c, k)
-        self.ngrams = {}
-
+        pass
     def get_vocab(self):
         ''' Returns the set of characters in the vocab '''
-        return set(self.ngrams.keys())
-
+        pass
     def update(self, text):
         ''' Updates the model n-grams based on text '''
         pass
