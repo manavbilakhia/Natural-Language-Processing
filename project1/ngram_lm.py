@@ -18,7 +18,12 @@ def ngrams(c, text):
     ''' Returns the ngrams of the text as tuples where the first element is
         the length-c context and the second is the character '''
     text = start_pad(c) + text
-    return [(text[i:i+c], text[i+c]) for i in range(len(text)-c)]
+    ngrams_list = []
+    for i in range(c, len(text)):
+        context = text[i-c:i] if c > 0 else ""
+        char = text[i]
+        ngrams_list.append((context, char))
+    return ngrams_list
 
 
 def create_ngram_model(model_class, path, c=2, k=0):
@@ -51,14 +56,16 @@ class NgramModel(object):
         self.c = c
         self.k = k
         self.ngrams = {}
+        self.vocab = set()
 
     def get_vocab(self):
         ''' Returns the set of characters in the vocab '''
-        return set(self.ngrams.keys())
+        return self.vocab
 
     def update(self, text):
         ''' Updates the model n-grams based on text '''
         for context, char in ngrams(self.c, text):
+            self.vocab.add(char)
             if context not in self.ngrams:
                 self.ngrams[context] = {}
             if char not in self.ngrams[context]:
@@ -68,54 +75,27 @@ class NgramModel(object):
     def prob(self, context, char):
         ''' Returns the probability of char appearing after context '''
         if context not in self.ngrams:
-            return 0
-        context_count = sum(self.ngrams[context].values()) + self.k * len(self.ngrams[context])
-        char_count = self.ngrams[context].get(char, 0) + self.k
-        return char_count / context_count
+            return 1/len(self.vocab)
+        context_count = sum(self.ngrams[context].values())
+        if char not in self.ngrams[context]:
+            return 1/len(self.vocab)
+        char_count = self.ngrams[context][char]
+        return char_count/context_count
 
     def random_char(self, context):
         ''' Returns a random character based on the given context and the 
             n-grams learned by this model '''
-        if context not in self.ngrams:
-            return None
-        context_count = sum(self.ngrams[context].values()) + self.k * len(self.ngrams[context])
-        char_probs = {}
-        for char in self.ngrams[context]:
-            char_probs[char] = (self.ngrams[context][char] + self.k) / context_count
-        r = random.random()
-        p_total = 0.0
-        for char, p in char_probs.items():
-            p_total += p
-            if r < p_total:
-                return char
+        pass
 
     def random_text(self, length):
         ''' Returns text of the specified character length based on the
             n-grams learned by this model '''
-        context = " " * (self.c - 1)
-        text = ""
-        for i in range(length):
-            char = self.random_char(context)
-            if char is None:
-                return None
-            text += char
-            context = context[1:] + char
-        return text
+        pass
 
     def perplexity(self, text):
         ''' Returns the perplexity of text based on the n-grams learned by
             this model '''
-        n = len(text)
-        context = " " * (self.c - 1)
-        prob = 1.0
-        for i in range(n):
-            char = text[i]
-            p = self.prob(context, char)
-            if p == 0:
-                return float('inf')
-            prob *= (1/p)
-            context = context[1:] + char
-        return pow(prob, -1/n)
+        pass
 
 ################################################################################
 # N-Gram Model with Interpolation
@@ -149,3 +129,17 @@ class NgramModelWithInterpolation(NgramModel):
 #
 # Hint: it may be useful to encapsulate it into multiple functions so
 # that you can easily run any test or experiment at any time.
+
+if __name__ == '__main__':
+    print(ngrams(1,"abc"))
+    print(ngrams(2,"abc"))
+    m = NgramModel(1, 0)
+    m.update("abab")
+    vocab1 = m.get_vocab()
+    print(vocab1)
+    m.update("abcd")
+    vocab2 = m.get_vocab()
+    print(vocab2)
+    print(m.prob("a", "b"))
+    print(m.prob("~", "c"))
+    print(m.prob("b", "c"))
