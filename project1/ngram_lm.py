@@ -111,8 +111,13 @@ class NgramModel(object):
     def perplexity(self, text):
         ''' Returns the perplexity of text based on the n-grams learned by
             this model '''
+        if self.c == 0:
+            context = ""
         log_prob = 0
         for context, char in ngrams(self.c, text):
+            p = self.prob(context, char)
+            if p == 0:
+                return float("inf")
             log_prob += math.log(self.prob(context,char))
         return math.exp(-log_prob/len(text))
 
@@ -184,3 +189,5 @@ if __name__ == '__main__':
     m.update('abab')
     m.update('abcd')
     print(m.perplexity("abcd"))
+    print(m.perplexity("abca"))
+    print(m.perplexity("abcda"))
