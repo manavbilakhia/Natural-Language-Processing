@@ -111,7 +111,10 @@ class NgramModel(object):
     def perplexity(self, text):
         ''' Returns the perplexity of text based on the n-grams learned by
             this model '''
-        pass
+        log_prob = 0
+        for context, char in ngrams(self.c, text):
+            log_prob += math.log(self.prob(context,char))
+        return math.exp(-log_prob/len(text))
 
 ################################################################################
 # N-Gram Model with Interpolation
@@ -177,3 +180,7 @@ if __name__ == '__main__':
     print(m.random_text(250))
     m = create_ngram_model(NgramModel, "shakespeare_input.txt", 7)
     print(m.random_text(250))
+    m = NgramModel(1, 0)
+    m.update('abab')
+    m.update('abcd')
+    print(m.perplexity("abcd"))
