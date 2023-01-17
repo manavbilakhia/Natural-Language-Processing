@@ -146,11 +146,9 @@ class NgramModelWithInterpolation(NgramModel):
     def update(self, text):
         ''' Updates the model n-grams based on text '''
         pass
-
     def prob(self, context, char):
         ''' Returns the probability of char appearing after context '''
         pass
-
 ################################################################################
 # Your N-Gram Model Experimentations
 ################################################################################
@@ -206,3 +204,16 @@ if __name__ == '__main__':
     print(m.prob("a","b"))
     print(m.prob("c","d"))
     print(m.prob("d","a"))
+    print("------------------")
+    m = NgramModelWithInterpolation(1, 0)
+    m.update('abab')
+    print(m.prob("a","a"))
+    print(m.prob("a","b"))
+    print("------------------")
+    m = NgramModelWithInterpolation(2, 1)
+    m.update('abab')
+    m.update('abcd')
+    print(m.prob("~a","b"))
+    print(m.prob("ba","b"))
+    print(m.prob("~c","d"))
+    print(m.prob("bc","d"))
