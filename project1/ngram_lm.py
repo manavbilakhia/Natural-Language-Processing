@@ -72,14 +72,22 @@ class NgramModel(object):
                 self.ngrams[context][char] = 0
             self.ngrams[context][char] += 1
 
+    #def prob(self, context, char):
+    #    ''' Returns the probability of char appearing after context '''
+    #    if context not in self.ngrams:
+    #        return 1/len(self.vocab)
+    #    context_count = sum(self.ngrams[context].values())
+    #    if char not in self.ngrams[context]:
+    #        return 0.0
+    #    char_count = self.ngrams[context][char]
+    #    return char_count/context_count
+    
     def prob(self, context, char):
-        ''' Returns the probability of char appearing after context '''
+        ''' Returns the probability of char appearing after context with add-k smoothing'''
         if context not in self.ngrams:
             return 1/len(self.vocab)
-        context_count = sum(self.ngrams[context].values())
-        if char not in self.ngrams[context]:
-            return 0.0
-        char_count = self.ngrams[context][char]
+        context_count = sum(self.ngrams[context].values()) + self.k * len(self.vocab)
+        char_count = self.ngrams[context].get(char, 0) + self.k
         return char_count/context_count
 
     def random_char(self, context):
@@ -191,3 +199,10 @@ if __name__ == '__main__':
     print(m.perplexity("abcd"))
     print(m.perplexity("abca"))
     print(m.perplexity("abcda"))
+    m = NgramModel(1, 1)
+    m.update('abab')
+    m.update('abcd')
+    print(m.prob("a","a"))
+    print(m.prob("a","b"))
+    print(m.prob("c","d"))
+    print(m.prob("d","a"))
