@@ -139,16 +139,35 @@ class NgramModelWithInterpolation(NgramModel):
     def __init__(self, c, k):
         ''' Initializes the n-gram model with the context length c and the
             smoothing parameter k '''
-        pass
+        super().__init__(c, k)
+        self.lambdas = [1/(c+1) for _ in range(c+1)]
+        self.models = [NgramModel(i, k) for i in range(c)]
+
     def get_vocab(self):
         ''' Returns the set of characters in the vocab '''
-        pass
+        return self.vocab
+
     def update(self, text):
         ''' Updates the model n-grams based on text '''
-        pass
+        super().update(text)
+        for model in self.models:
+            model.update(text)
+    
     def prob(self, context, char):
         ''' Returns the probability of char appearing after context '''
-        pass
+        model_sum = 0
+        for model in self.models:
+            model_prob = 0
+            model_char = ngrams(model.c, context + char)[-1][1]
+            model_context = ngrams(model.c, context + char)[-1][0]
+            model_prob = model.prob(model_context, model_char)
+            model_sum += self.lambdas[model.c+1] * model_prob
+        model_sum = model_sum+ (self.lambdas[0] * super().prob(context, char))
+        return model_sum    
+
+    def set_lambdas(self, lambdas):
+        ''' Sets the interpolation weights to lambdas '''
+        self.lambdas = lambdas
 ################################################################################
 # Your N-Gram Model Experimentations
 ################################################################################
@@ -159,7 +178,6 @@ class NgramModelWithInterpolation(NgramModel):
 #
 # Hint: it may be useful to encapsulate it into multiple functions so
 # that you can easily run any test or experiment at any time.
-
 if __name__ == '__main__':
     print(ngrams(1,"abc"))
     print(ngrams(2,"abc"))
@@ -191,12 +209,14 @@ if __name__ == '__main__':
     print(m.random_text(250))
     m = create_ngram_model(NgramModel, "shakespeare_input.txt", 7)
     print(m.random_text(250))
+    print("------------------")
     m = NgramModel(1, 0)
     m.update('abab')
     m.update('abcd')
     print(m.perplexity("abcd"))
     print(m.perplexity("abca"))
     print(m.perplexity("abcda"))
+    print("------------------")
     m = NgramModel(1, 1)
     m.update('abab')
     m.update('abcd')
@@ -217,3 +237,6 @@ if __name__ == '__main__':
     print(m.prob("ba","b"))
     print(m.prob("~c","d"))
     print(m.prob("bc","d"))
+
+
+
