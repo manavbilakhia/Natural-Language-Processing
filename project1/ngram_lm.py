@@ -237,6 +237,3 @@ if __name__ == '__main__':
     print(m.prob("ba","b"))
     print(m.prob("~c","d"))
     print(m.prob("bc","d"))
-
-
-
