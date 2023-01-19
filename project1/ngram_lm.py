@@ -178,9 +178,48 @@ class NgramModelWithInterpolation(NgramModel):
 #
 # Hint: it may be useful to encapsulate it into multiple functions so
 # that you can easily run any test or experiment at any time.
-if __name__ == '__main__':
+class language_identification():
+    #James Heffernan helped me with the algorithm for this class
+    ''' A language identification model '''
+    def __init__(self, lambdas):
+        self.models = {}
+        for code in COUNTRY_CODES:
+            path = "cities_train/train/"+code+".txt"
+            model = create_ngram_model_lines(NgramModelWithInterpolation,path, c = 4,k = 0.5)
+            #model.set_lambdas(lambdas)
+            self.models[code] = model
+    
+    def identify_word(self, text):
+        ''' Returns the language code of the language that the text is most likely to be in '''
+        probability_code = []
+        for code,model in self.models.items():
+            probability = 0
+            for context, char in ngrams(model.c, text):
+                probability += math.log(model.prob(context, char))
+            probability_code.append((probability, code))
+        return max(probability_code)[1]
+    
+    def classifier_accuracy(self,code):
+        ''' Returns the accuracy of the model on the test data for the given language code '''
+        
+        countries = []
+        with open('cities_val/val/'+code+'.txt') as file:
+            for line in file:
+                line = line.strip()
+                countries.append(self.identify_word(line))
+        return countries.count(code)/len(countries)
+    
+    def evaluate(self):
+        ''' Returns the accuracy of the model on the test data for all languages'''
+        for code in COUNTRY_CODES:
+            accuracy = self.classifier_accuracy(code)
+            percentage = accuracy*100
+            print(code,": ",percentage,"%")
+def test1():
     print(ngrams(1,"abc"))
     print(ngrams(2,"abc"))
+
+def test2():
     m = NgramModel(1, 0)
     m.update("abab")
     vocab1 = m.get_vocab()
@@ -191,32 +230,51 @@ if __name__ == '__main__':
     print(m.prob("a", "b"))
     print(m.prob("~", "c"))
     print(m.prob("b", "c"))
+
+def test3():
     m = NgramModel(0, 0)
     m.update('abab')
     m.update('abcd')
     random.seed(1)
     print([m.random_char('') for i in range(25)])
+
+def test4():
     m = NgramModel(1, 0)
     m.update('abab')
     m.update('abcd')
     random.seed(1)
     print(m.random_text(25))
+
+def test_shakespear():
     m = create_ngram_model(NgramModel, "shakespeare_input.txt", 2)
     print(m.random_text(250))
+    print("------------------")
     m = create_ngram_model(NgramModel, "shakespeare_input.txt", 3)
     print(m.random_text(250))
+    print("------------------")
     m = create_ngram_model(NgramModel, "shakespeare_input.txt", 4)
     print(m.random_text(250))
+    print("------------------")
     m = create_ngram_model(NgramModel, "shakespeare_input.txt", 7)
     print(m.random_text(250))
     print("------------------")
+
+def test_perplexity():
     m = NgramModel(1, 0)
     m.update('abab')
     m.update('abcd')
     print(m.perplexity("abcd"))
     print(m.perplexity("abca"))
     print(m.perplexity("abcda"))
-    print("------------------")
+
+def test_shakespeare_perplexity(path):
+    models = [create_ngram_model(NgramModel, 'shakespeare_input.txt', c=c+1, k=1) for c in range(10)]
+    with open(path, encoding='utf-8', errors='ignore') as file:
+        text = file.read()
+    for m in models:
+        print("c =" , str(m.c), " = " f'{m.perplexity(text):.4f}')
+
+def test_smoothing():
     m = NgramModel(1, 1)
     m.update('abab')
     m.update('abcd')
@@ -224,16 +282,54 @@ if __name__ == '__main__':
     print(m.prob("a","b"))
     print(m.prob("c","d"))
     print(m.prob("d","a"))
-    print("------------------")
-    m = NgramModelWithInterpolation(1, 0)
-    m.update('abab')
-    print(m.prob("a","a"))
-    print(m.prob("a","b"))
-    print("------------------")
-    m = NgramModelWithInterpolation(2, 1)
-    m.update('abab')
-    m.update('abcd')
-    print(m.prob("~a","b"))
-    print(m.prob("ba","b"))
-    print(m.prob("~c","d"))
-    print(m.prob("bc","d"))
+
+def test_interpolation():
+    m1 = NgramModelWithInterpolation(1, 0) #lambda = [0.5,0.5]
+    m1.update('abab')
+    print(m1.prob("a","a"))
+    print(m1.prob("a","b"))
+    print("----------------")
+    m2 = NgramModelWithInterpolation(2, 1) #lambda = [1/3,1/3,1/3]
+    m2.update('abab')
+    m2.update('abcd')
+    print(m2.prob("~a","b"))
+    print(m2.prob("ba","b"))
+    print(m2.prob("~c","d"))
+    print(m2.prob("bc","d"))
+    print("----------------")
+    m3 = NgramModelWithInterpolation(2, 1) #lambda = [2/3,1/6,1/6]
+    m3.set_lambdas([2/3,1/6,1/6])
+    m3.update('abab')
+    m3.update('abcd')
+    print(m3.prob("~a","b"))
+    print(m3.prob("ba","b"))
+    print(m3.prob("~c","d"))
+    print(m3.prob("bc","d"))
+    print("----------------")
+    m4 = NgramModelWithInterpolation(2, 1) #lambda = [0,2/3,1/6]
+    m4.set_lambdas([0,2/3,1/6])
+    m4.update('abab')
+    m4.update('abcd')
+    print(m4.prob("~a","b"))
+    print(m4.prob("ba","b"))
+    print(m4.prob("~c","d"))
+    print(m4.prob("bc","d"))
+
+def test_language_identification():
+    m = language_identification([0.1, 0.2,0.3,0.4])
+    m.evaluate()
+
+
+if __name__ == '__main__':
+    test1()
+    test2()
+    test3()
+    test4()
+    test_shakespear()
+    test_perplexity()
+    test_shakespeare_perplexity("shakespeare_sonnets.txt")
+    test_shakespeare_perplexity("nytimes_article.txt")
+    test_smoothing()
+    test_interpolation()
+    test_language_identification()
+  
