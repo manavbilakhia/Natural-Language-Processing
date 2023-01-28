@@ -1,8 +1,9 @@
 """Text classification for identifying complex words.
 
-Author: Kristina Striegnitz and <YOUR NAME HERE>
+Author: Kristina Striegnitz and Manav Bilakhia
 
-<HONOR CODE STATEMENT HERE>
+I affirm that I have carried out my academic endeavors with full
+academic honesty. [Manav Bilakhia]
 
 Complete this file for parts 2-4 of the project.
 
@@ -39,8 +40,9 @@ def load_file(data_file):
 def all_complex(data_file):
     """Label every word as complex. Evaluate performance on given data set. Print out
     evaluation results."""
-    ## YOUR CODE HERE...
-    pass
+    _,labels = load_file(data_file)
+    y_pred = [1 for label in labels]
+    evaluate(y_pred, labels)
 
 
 ### 2.2: Word length thresholding
@@ -48,9 +50,36 @@ def all_complex(data_file):
 def word_length_threshold(training_file, development_file):
     """Find the best length threshold by f-score and use this threshold to classify
     the training and development data. Print out evaluation results."""
-    ## YOUR CODE HERE
-    pass
+    training_data = load_file(training_file)
+    train_words = training_data[0]
+    train_labels = training_data[1]
 
+    development_data = load_file(development_file)
+    dev_words = development_data[0]
+    dev_labels = development_data[1]
+
+    best_threshold = 0
+    best_fscore = 0
+    y_pred_train = []
+    for threshold in range(1, 20):
+        y_pred_train = []
+        for word in train_words:
+            if len(word) >= threshold:
+                y_pred_train.append(1)
+            else:
+                y_pred_train.append(0)
+        fscore = get_fscore(y_pred_train, train_labels)
+        if fscore > best_fscore:
+            best_fscore = fscore
+            best_threshold = threshold
+    y_pred_dev = []
+    for word in dev_words:
+        if len(word) >= best_threshold:
+            y_pred_dev.append(1)
+        else:
+            y_pred_dev.append(0)
+    print("Best threshold:", best_threshold)
+    evaluate(y_pred_dev, dev_labels)
 
 ### 2.3: Word frequency thresholding
 
@@ -72,9 +101,15 @@ def word_frequency_threshold(training_file, development_file, counts):
     threshold to classify the training and development data. Print out
     evaluation results.
     """
-    ## YOUR CODE HERE
-    #Find best frequency threshold
-    pass
+    min_freq = min(counts.values())
+    max_freq = max(counts.values())
+    print("minimum frequency:", min_freq)
+    print("maximum frequency:", max_freq)
+
+    freq_thresholds = range (min_freq, max_freq, 100000)
+    best_threshold = 0
+    best_fscore = 0
+    training_data = load_file(training_file)
 
 
 ### 3.1: Naive Bayes
@@ -142,19 +177,23 @@ def classifiers(training_file, development_file, counts):
     my_classifier(training_file, development_file, counts)
 
 if __name__ == "__main__":
-    training_file = "/var/csc483/complex_words_training.txt"
-    development_file = "/var/csc483/data/complex_words_development.txt"
-    test_file = "/var/csc483/data/complex_words_test_unlabeled.txt"
+    #all_complex("train/complex_words_training.txt")
+    word_length_threshold("train/complex_words_training.txt", "train/complex_words_development.txt")
+    #training_file = "train/complex_words_training.txt"
+    #development_file = "train/complex_words_development.txt"
+    #test_file = "train/complex_words_test_unlabeled.txt"
 
-    print("Loading ngram counts ...")
-    ngram_counts_file = "/var/csc483/ngram_counts.txt.gz"
-    counts = load_ngram_counts(ngram_counts_file)
+    #print("Loading ngram counts ...")
+    # ngram_counts_file = "ngram_counts.txt.gz"
+    # counts = load_ngram_counts(ngram_counts_file)
 
-    baselines(training_file, development_file, counts)
-    classifiers(training_file, development_file, counts)
+    # baselines(training_file, development_file, counts)
+    # classifiers(training_file, development_file, counts)
 
     ## YOUR CODE HERE
     # Train your best classifier, predict labels for the test dataset and write
     # the predicted labels to the text file 'test_labels.txt', with ONE LABEL
     # PER LINE
+
+
 
