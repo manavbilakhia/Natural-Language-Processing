@@ -147,8 +147,22 @@ def naive_bayes(training_file, development_file, counts):
     development data.
     """
     ## YOUR CODE HERE
-    pass
+    train_words, train_labels = load_file(training_file)
+    dev_words, dev_labels = load_file(development_file)
 
+    train_x = np.array([[len(word), counts[word]] for word in train_words])
+    train_y = np.array(train_labels)
+    dev_x = np.array([[len(word), counts[word]] for word in dev_words])
+    dev_y = np.array(dev_labels)
+
+    classifier = GaussianNB()
+    classifier.fit(train_x, train_y)
+
+    y_pred_dev = classifier.predict(dev_x)
+    print("training data:")
+    evaluate(classifier.predict(train_x),train_y)
+    print("development data:")
+    evaluate(y_pred_dev, dev_y)
 
 ### 3.2: Logistic Regression
 
@@ -226,6 +240,8 @@ if __name__ == "__main__":
     word_length_threshold(training_file, development_file)
     print("________________________________")
     word_frequency_threshold(training_file, development_file,counts)
+    print("________________________________")
+    naive_bayes(training_file, development_file, counts)
 
 
 
