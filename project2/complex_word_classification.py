@@ -12,8 +12,11 @@ Complete this file for parts 2-4 of the project.
 from collections import defaultdict
 import gzip
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 
 from syllables import count_syllables
 from nltk.corpus import wordnet as wn
@@ -138,15 +141,9 @@ def word_frequency_threshold(training_file, development_file, counts):
     evaluate(development_labels, dev_labels)
             
 
-
-### 3.1: Naive Bayes
-
-def naive_bayes(training_file, development_file, counts):
-    """Train a Naive Bayes classifier using length and frequency
-    features. Print out evaluation results on the training and
-    development data.
-    """
-    ## YOUR CODE HERE
+### 3.0:classifier helper
+def __my_classifier__(training_file, development_file, counts,clf):
+    
     train_words, train_labels = load_file(training_file)
     dev_words, dev_labels = load_file(development_file)
 
@@ -156,34 +153,7 @@ def naive_bayes(training_file, development_file, counts):
     dev_x = np.array([[len(word), counts[word]] for word in dev_words])
     scaled_dev_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in dev_x]
     dev_y = np.array(dev_labels)
-
-    clf = GaussianNB()
-    clf.fit(scaled_train_x, train_y)
-
-    y_pred_dev = clf.predict(scaled_dev_x)
-    print("training data:")
-    evaluate(clf.predict(scaled_train_x),train_y)
-    print("development data:")
-    evaluate(y_pred_dev, dev_y)
-
-### 3.2: Logistic Regression
-
-def logistic_regression(training_file, development_file, counts):
-    """Train a Logistic Regression classifier using length and frequency
-    features. Print out evaluation results on the training and
-    development data.
-    """
-    train_words, train_labels = load_file(training_file)
-    dev_words, dev_labels = load_file(development_file)
-
-    train_x = np.array([[len(word), counts[word]] for word in train_words])
-    scaled_train_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in train_x]
-    train_y = np.array(train_labels)
-    dev_x = np.array([[len(word), counts[word]] for word in dev_words])
-    scaled_dev_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in dev_x]
-    dev_y = np.array(dev_labels)
-
-    clf = LogisticRegression()
+    print("clf:",clf)
     clf.fit(scaled_train_x, train_y)
 
     y_pred_dev = clf.predict(scaled_dev_x)
@@ -192,12 +162,41 @@ def logistic_regression(training_file, development_file, counts):
     evaluate(y_pred_train,train_y)
     print("development data:")
     evaluate(y_pred_dev, dev_y)
+    print()
+### 3.1: Naive Bayes
+
+def naive_bayes(training_file, development_file, counts):
+    """Train a Naive Bayes classifier using length and frequency
+    features. Print out evaluation results on the training and
+    development data.
+    """
+    clf = GaussianNB()
+    __my_classifier__(training_file, development_file, counts,clf)
+    
+
+### 3.2: Logistic Regression
+
+def logistic_regression(training_file, development_file, counts):
+    """Train a Logistic Regression classifier using length and frequency
+    features. Print out evaluation results on the training and
+    development data.
+    """
+    clf = LogisticRegression()
+    __my_classifier__(training_file, development_file, counts,clf)
+
+def classifier_comparison(training_file, development_file, counts):
+    clf = SVC()
+    __my_classifier__(training_file, development_file, counts,clf)
+    clf = RandomForestClassifier()
+    __my_classifier__(training_file, development_file, counts,clf)
+    clf = DecisionTreeClassifier()
+    __my_classifier__(training_file, development_file, counts,clf)
+
 
 
 ### 3.3: Build your own classifier
 
 def my_classifier(training_file, development_file, counts):
-    ## YOUR CODE HERE
     pass
 
 
@@ -254,15 +253,23 @@ if __name__ == "__main__":
     # Train your best classifier, predict labels for the test dataset and write
     # the predicted labels to the text file 'test_labels.txt', with ONE LABEL
     # PER LINE
-
-    #all_complex("training_file")
+    print("all complex")
+    all_complex(training_file)
+    print()
+    print("word length threshold")
     word_length_threshold(training_file, development_file)
-    print("________________________________")
+    print()
+    print("word frequency threshold")
     word_frequency_threshold(training_file, development_file,counts)
-    print("________________________________")
+    print()
+    print("naive bayes")
     naive_bayes(training_file, development_file, counts)
-    print("________________________________")
+    print()
+    print("logistic regression")
     logistic_regression(training_file, development_file, counts)
+    print()
+    print("classifier comparison")
+    classifier_comparison(training_file, development_file, counts)
 
 
 
