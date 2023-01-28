@@ -89,27 +89,54 @@ def load_ngram_counts(ngram_counts_file):
     keys and the counts are values.
     """
     counts = defaultdict(int)
-    with gzip.open(ngram_counts_file, 'rt') as f:
+    with gzip.open(ngram_counts_file, 'rt',encoding="utf8") as f:
         for line in f:
             token, count = line.strip().split('\t')
             if token[0].islower():
                 counts[token] = int(count)
     return counts
 
+def get_label_freq(words,counts, threshold = 28426132):
+    """Return a list of labels (0 or 1) for the given list of words"""
+    y_pred = []
+    for word in words:
+        if counts[word] < threshold:
+            y_pred.append(1)
+        else:
+            y_pred.append(0)
+    return y_pred
+
 def word_frequency_threshold(training_file, development_file, counts):
     """Find the best frequency threshold by f-score and use this
     threshold to classify the training and development data. Print out
     evaluation results.
     """
-    min_freq = min(counts.values())
-    max_freq = max(counts.values())
-    print("minimum frequency:", min_freq)
-    print("maximum frequency:", max_freq)
+    train_words, train_labels = load_file(training_file)
+    dev_words, dev_labels = load_file(development_file)
 
-    freq_thresholds = range (min_freq, max_freq, 100000)
+    min_count = min(counts.values())
+    max_count = max(counts.values())
+
+    thresholds = [x for x in range(min_count, max_count, (max_count-min_count)//10000)]
     best_threshold = 0
     best_fscore = 0
-    training_data = load_file(training_file)
+    for threshold in thresholds:
+        y_pred_train = get_label_freq(train_words, counts, threshold)
+        fscore = get_fscore(y_pred_train, train_labels)
+        if fscore > best_fscore:
+            best_fscore = fscore
+            best_threshold = threshold
+        
+    print("Best threshold:", best_threshold)
+    print("training data:")
+
+    training_labels = get_label_freq(train_words, counts, best_threshold)
+    evaluate(training_labels, train_labels)
+
+    print("development data:")
+    development_labels = get_label_freq(dev_words, counts, best_threshold)
+    evaluate(development_labels, dev_labels)
+            
 
 
 ### 3.1: Naive Bayes
@@ -177,23 +204,28 @@ def classifiers(training_file, development_file, counts):
     my_classifier(training_file, development_file, counts)
 
 if __name__ == "__main__":
-    #all_complex("train/complex_words_training.txt")
-    word_length_threshold("train/complex_words_training.txt", "train/complex_words_development.txt")
-    #training_file = "train/complex_words_training.txt"
-    #development_file = "train/complex_words_development.txt"
-    #test_file = "train/complex_words_test_unlabeled.txt"
 
-    #print("Loading ngram counts ...")
-    # ngram_counts_file = "ngram_counts.txt.gz"
-    # counts = load_ngram_counts(ngram_counts_file)
+    training_file = "train/complex_words_training.txt"
+    development_file = "train/complex_words_development.txt"
+    test_file = "train/complex_words_test_unlabeled.txt"
 
-    # baselines(training_file, development_file, counts)
-    # classifiers(training_file, development_file, counts)
+    print("Loading ngram counts ...")
+    ngram_counts_file = "ngram_counts.txt.gz"
+    counts = load_ngram_counts(ngram_counts_file)
+    print("Done loading ngram counts.")
+
+    #baselines(training_file, development_file, counts)
+    #classifiers(training_file, development_file, counts)
 
     ## YOUR CODE HERE
     # Train your best classifier, predict labels for the test dataset and write
     # the predicted labels to the text file 'test_labels.txt', with ONE LABEL
     # PER LINE
+
+    #all_complex("training_file")
+    word_length_threshold(training_file, development_file)
+    print("________________________________")
+    word_frequency_threshold(training_file, development_file,counts)
 
 
 
