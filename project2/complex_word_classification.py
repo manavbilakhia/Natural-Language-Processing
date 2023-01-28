@@ -142,15 +142,22 @@ def word_frequency_threshold(training_file, development_file, counts):
             
 
 ### 3.0:classifier helper
-def __my_classifier__(training_file, development_file, counts,clf):
+def __my_classifier__(training_file, development_file, counts,clf,syllable):
     
     train_words, train_labels = load_file(training_file)
     dev_words, dev_labels = load_file(development_file)
 
-    train_x = np.array([[len(word), counts[word]] for word in train_words])
+    if syllable:
+        print("with syllable")
+        train_x = np.array([[len(word), counts[word], count_syllables(word)] for word in train_words])
+        dev_x = np.array([[len(word), counts[word], count_syllables(word)] for word in dev_words])
+    else:
+        print("without syllable")
+        train_x = np.array([[len(word), counts[word]] for word in train_words])
+        dev_x = np.array([[len(word), counts[word]] for word in dev_words])
+
     scaled_train_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in train_x]
     train_y = np.array(train_labels)
-    dev_x = np.array([[len(word), counts[word]] for word in dev_words])
     scaled_dev_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in dev_x]
     dev_y = np.array(dev_labels)
     print("clf:",clf)
@@ -171,7 +178,10 @@ def naive_bayes(training_file, development_file, counts):
     development data.
     """
     clf = GaussianNB()
-    __my_classifier__(training_file, development_file, counts,clf)
+
+    __my_classifier__(training_file, development_file, counts,clf,False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,True)
     
 
 ### 3.2: Logistic Regression
@@ -182,15 +192,23 @@ def logistic_regression(training_file, development_file, counts):
     development data.
     """
     clf = LogisticRegression()
-    __my_classifier__(training_file, development_file, counts,clf)
+    __my_classifier__(training_file, development_file, counts,clf,False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,True)
 
 def classifier_comparison(training_file, development_file, counts):
     clf = SVC()
-    __my_classifier__(training_file, development_file, counts,clf)
+    __my_classifier__(training_file, development_file, counts,clf,False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,True)
     clf = RandomForestClassifier()
-    __my_classifier__(training_file, development_file, counts,clf)
+    __my_classifier__(training_file, development_file, counts,clf,False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,True)
     clf = DecisionTreeClassifier()
-    __my_classifier__(training_file, development_file, counts,clf)
+    __my_classifier__(training_file, development_file, counts,clf,False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,True)
 
 
 
@@ -231,7 +249,11 @@ def classifiers(training_file, development_file, counts):
     print("-----------")
     logistic_regression(training_file, development_file, counts)
 
-    print("\nMy classifier")
+    print("\nClassifier Comparison")
+    print("-----------")
+    classifier_comparison(training_file, development_file, counts)
+
+    print("\nMy Classifier")
     print("-----------")
     my_classifier(training_file, development_file, counts)
 
@@ -246,30 +268,13 @@ if __name__ == "__main__":
     counts = load_ngram_counts(ngram_counts_file)
     print("Done loading ngram counts.")
 
-    #baselines(training_file, development_file, counts)
-    #classifiers(training_file, development_file, counts)
+    baselines(training_file, development_file, counts)
+    classifiers(training_file, development_file, counts)
 
     ## YOUR CODE HERE
     # Train your best classifier, predict labels for the test dataset and write
     # the predicted labels to the text file 'test_labels.txt', with ONE LABEL
     # PER LINE
-    print("all complex")
-    all_complex(training_file)
-    print()
-    print("word length threshold")
-    word_length_threshold(training_file, development_file)
-    print()
-    print("word frequency threshold")
-    word_frequency_threshold(training_file, development_file,counts)
-    print()
-    print("naive bayes")
-    naive_bayes(training_file, development_file, counts)
-    print()
-    print("logistic regression")
-    logistic_regression(training_file, development_file, counts)
-    print()
-    print("classifier comparison")
-    classifier_comparison(training_file, development_file, counts)
 
 
 
