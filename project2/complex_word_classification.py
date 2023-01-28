@@ -154,7 +154,7 @@ def naive_bayes(training_file, development_file, counts):
     scaled_train_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in train_x]
     train_y = np.array(train_labels)
     dev_x = np.array([[len(word), counts[word]] for word in dev_words])
-    scaled_dev_x = [(word - dev_x.mean(axis=0)) / dev_x.std(axis=0) for word in dev_x]
+    scaled_dev_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in dev_x]
     dev_y = np.array(dev_labels)
 
     clf = GaussianNB()
@@ -180,7 +180,7 @@ def logistic_regression(training_file, development_file, counts):
     scaled_train_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in train_x]
     train_y = np.array(train_labels)
     dev_x = np.array([[len(word), counts[word]] for word in dev_words])
-    scaled_dev_x = [(word - dev_x.mean(axis=0)) / dev_x.std(axis=0) for word in dev_x]
+    scaled_dev_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in dev_x]
     dev_y = np.array(dev_labels)
 
     clf = LogisticRegression()
