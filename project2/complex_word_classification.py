@@ -144,7 +144,7 @@ def word_frequency_threshold(training_file, development_file, counts):
             
 
 ### 3.0:classifier helper
-def __my_classifier__(training_file, development_file, counts,clf,syllable,wordnet):
+def __my_classifier(training_file, development_file, counts,clf,syllable,wordnet):
     
     train_words, train_labels = load_file(training_file)
     dev_words, dev_labels = load_file(development_file)
@@ -188,13 +188,13 @@ def naive_bayes(training_file, development_file, counts):
     development data.
     """
     clf = GaussianNB()
-    __my_classifier__(training_file, development_file, counts,clf,True, True)
+    __my_classifier(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    __my_classifier(training_file, development_file, counts,clf,True, False)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    __my_classifier(training_file, development_file, counts,clf,False, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, False)
+    __my_classifier(training_file, development_file, counts,clf,False, False)
     print()
 ### 3.2: Logistic Regression
 
@@ -204,40 +204,40 @@ def logistic_regression(training_file, development_file, counts):
     development data.
     """
     clf = LogisticRegression()
-    __my_classifier__(training_file, development_file, counts,clf,True, True)
+    __my_classifier(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    __my_classifier(training_file, development_file, counts,clf,True, False)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    __my_classifier(training_file, development_file, counts,clf,False, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, False)
+    __my_classifier(training_file, development_file, counts,clf,False, False)
     print()
 
 def classifier_comparison(training_file, development_file, counts):
     clf = SVC()
-    __my_classifier__(training_file, development_file, counts,clf,True, True)
+    __my_classifier(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    __my_classifier(training_file, development_file, counts,clf,True, False)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    __my_classifier(training_file, development_file, counts,clf,False, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, False)
+    __my_classifier(training_file, development_file, counts,clf,False, False)
     clf = RandomForestClassifier()
-    __my_classifier__(training_file, development_file, counts,clf,True, True)
+    __my_classifier(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    __my_classifier(training_file, development_file, counts,clf,True, False)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    __my_classifier(training_file, development_file, counts,clf,False, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, False)
+    __my_classifier(training_file, development_file, counts,clf,False, False)
     clf = DecisionTreeClassifier()
-    __my_classifier__(training_file, development_file, counts,clf,True, True)
+    __my_classifier(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    __my_classifier(training_file, development_file, counts,clf,True, False)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    __my_classifier(training_file, development_file, counts,clf,False, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,False, False)
+    __my_classifier(training_file, development_file, counts,clf,False, False)
 
 ### 3.3: Build your own classifier
 
@@ -246,7 +246,7 @@ def my_classifier(training_file, development_file, counts):
     """
     print("Best classifier")
     clf = SVC()
-    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    __my_classifier(training_file, development_file, counts,clf,False, True)
 
 
 def baselines(training_file, development_file, counts):
