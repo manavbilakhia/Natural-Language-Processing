@@ -19,6 +19,8 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from syllables import count_syllables
+import nltk
+nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
 
 from evaluation import get_fscore, evaluate
@@ -142,17 +144,25 @@ def word_frequency_threshold(training_file, development_file, counts):
             
 
 ### 3.0:classifier helper
-def __my_classifier__(training_file, development_file, counts,clf,syllable):
+def __my_classifier__(training_file, development_file, counts,clf,syllable,wordnet):
     
     train_words, train_labels = load_file(training_file)
     dev_words, dev_labels = load_file(development_file)
 
-    if syllable:
-        print("with syllable")
+    if syllable == True and wordnet == True:
+        print("with syllable and wordnet")
+        train_x = np.array([[len(word), counts[word], count_syllables(word), len(wn.synsets(word))] for word in train_words])
+        dev_x = np.array([[len(word), counts[word], count_syllables(word), len(wn.synsets(word))] for word in dev_words])
+    elif syllable == True and wordnet == False:
+        print("with syllable and without wordnet")
         train_x = np.array([[len(word), counts[word], count_syllables(word)] for word in train_words])
         dev_x = np.array([[len(word), counts[word], count_syllables(word)] for word in dev_words])
+    elif syllable == False and wordnet == True:
+        print("without syllable and with wordnet")
+        train_x = np.array([[len(word), counts[word], len(wn.synsets(word))] for word in train_words])
+        dev_x = np.array([[len(word), counts[word], len(wn.synsets(word))] for word in dev_words])
     else:
-        print("without syllable")
+        print("without syllable and without wordnet")
         train_x = np.array([[len(word), counts[word]] for word in train_words])
         dev_x = np.array([[len(word), counts[word]] for word in dev_words])
 
@@ -178,12 +188,14 @@ def naive_bayes(training_file, development_file, counts):
     development data.
     """
     clf = GaussianNB()
-
-    __my_classifier__(training_file, development_file, counts,clf,False)
+    __my_classifier__(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True)
-    
-
+    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, False)
+    print()
 ### 3.2: Logistic Regression
 
 def logistic_regression(training_file, development_file, counts):
@@ -192,30 +204,49 @@ def logistic_regression(training_file, development_file, counts):
     development data.
     """
     clf = LogisticRegression()
-    __my_classifier__(training_file, development_file, counts,clf,False)
+    __my_classifier__(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True)
+    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, False)
+    print()
 
 def classifier_comparison(training_file, development_file, counts):
     clf = SVC()
-    __my_classifier__(training_file, development_file, counts,clf,False)
+    __my_classifier__(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True)
+    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, False)
     clf = RandomForestClassifier()
-    __my_classifier__(training_file, development_file, counts,clf,False)
+    __my_classifier__(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True)
+    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, False)
     clf = DecisionTreeClassifier()
-    __my_classifier__(training_file, development_file, counts,clf,False)
+    __my_classifier__(training_file, development_file, counts,clf,True, True)
     print()
-    __my_classifier__(training_file, development_file, counts,clf,True)
-
-
+    __my_classifier__(training_file, development_file, counts,clf,True, False)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, True)
+    print()
+    __my_classifier__(training_file, development_file, counts,clf,False, False)
 
 ### 3.3: Build your own classifier
 
 def my_classifier(training_file, development_file, counts):
-    pass
+    """SVC without syllables and with wordnet synonyms works best
+    """
+    print("Best classifier")
+    clf = SVC()
+    __my_classifier__(training_file, development_file, counts,clf,False, True)
 
 
 def baselines(training_file, development_file, counts):
@@ -275,6 +306,3 @@ if __name__ == "__main__":
     # Train your best classifier, predict labels for the test dataset and write
     # the predicted labels to the text file 'test_labels.txt', with ONE LABEL
     # PER LINE
-
-
-
