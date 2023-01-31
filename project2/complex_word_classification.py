@@ -242,6 +242,15 @@ def classifier_comparison(training_file, development_file, counts):
 
 ### 3.3: Build your own classifier
 
+def my_classifier_analysis(training_file, development_file, counts):
+    """SVC without syllables and with wordnet synonyms works best
+    """
+    print("Best classifier")
+    clf = SVC()
+    __my_classifier(training_file, development_file, counts,clf,False, True)
+    print()
+
+
 def my_classifier(training_file, development_file, counts):
     """SVC without syllables and with wordnet synonyms works best
     """
@@ -262,21 +271,37 @@ def my_classifier(training_file, development_file, counts):
 
     y_pred_dev = clf.predict(scaled_dev_x)
     y_pred_train = clf.predict(scaled_train_x)
-    print("training data:")
-    evaluate(y_pred_train,train_y)
-    print("development data:")
-    #evaluate(y_pred_dev, dev_y)
-    print()
     test_labels = "test_labels.txt"
-    # write all the words and their predicted labels in test_labels.txt
-
     with open(test_labels, 'w') as f:
-        for word, label in zip(dev_words, y_pred_dev):
-            f.write(word + " " + str(label)+"\n")
+        for label in y_pred_dev:
+            f.write(str(label)+"\n")
 
-    #with open(test_labels, 'w') as f:
-    #    for label in y_pred_dev:
-    #        f.write(str(label)+"\n")
+def __my_classifier_mismatch(training_file, development_file,counts):
+    """SVC without syllables and with wordnet synonyms works best
+    """
+    clf = SVC()
+
+    train_words, train_labels = load_file(training_file)
+    dev_words, dev_labels = load_file(development_file)
+    train_x = np.array([[len(word), counts[word], len(wn.synsets(word))] for word in train_words])
+    dev_x = np.array([[len(word), counts[word], len(wn.synsets(word))] for word in dev_words])
+
+    scaled_train_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in train_x]
+    train_y = np.array(train_labels)
+    scaled_dev_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in dev_x]
+    dev_y = np.array(dev_labels)
+    print("clf:",clf)
+    clf.fit(scaled_train_x, train_y)
+
+    y_pred_dev = clf.predict(scaled_dev_x)
+    y_pred_train = clf.predict(scaled_train_x)
+    mismatch = 0
+    for i in range(len(y_pred_dev)):
+        if y_pred_dev[i] != dev_y[i]:
+            mismatch += 1
+            print(dev_words[i])
+    print("mismatch:",mismatch)
+    print("mismatch percentage:",(mismatch/len(y_pred_dev))*100 , "%")
 
 def baselines(training_file, development_file, counts):
     print("========== Baselines ===========\n")
@@ -312,6 +337,12 @@ def classifiers(training_file, development_file, counts):
     print("\nClassifier Comparison")
     print("-----------")
     classifier_comparison(training_file, development_file, counts)
+
+    print("\nMy Classifier Analysis")
+    print("-----------")
+    my_classifier_analysis(training_file, development_file, counts)
+    my_classifier(training_file, development_file, counts)
+    __my_classifier_mismatch(training_file, development_file, counts)
 
     print("\nMy Classifier")
     print("-----------")
