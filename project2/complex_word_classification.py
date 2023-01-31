@@ -19,6 +19,7 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from syllables import count_syllables
+
 import nltk
 nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
@@ -246,8 +247,36 @@ def my_classifier(training_file, development_file, counts):
     """
     print("Best classifier")
     clf = SVC()
-    __my_classifier(training_file, development_file, counts,clf,False, True)
 
+    train_words, train_labels = load_file(training_file)
+    dev_words, dev_labels = load_file(development_file)
+    train_x = np.array([[len(word), counts[word], len(wn.synsets(word))] for word in train_words])
+    dev_x = np.array([[len(word), counts[word], len(wn.synsets(word))] for word in dev_words])
+
+    scaled_train_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in train_x]
+    train_y = np.array(train_labels)
+    scaled_dev_x = [(word - train_x.mean(axis=0)) / train_x.std(axis=0) for word in dev_x]
+    dev_y = np.array(dev_labels)
+    print("clf:",clf)
+    clf.fit(scaled_train_x, train_y)
+
+    y_pred_dev = clf.predict(scaled_dev_x)
+    y_pred_train = clf.predict(scaled_train_x)
+    print("training data:")
+    evaluate(y_pred_train,train_y)
+    print("development data:")
+    #evaluate(y_pred_dev, dev_y)
+    print()
+    test_labels = "test_labels.txt"
+    # write all the words and their predicted labels in test_labels.txt
+
+    with open(test_labels, 'w') as f:
+        for word, label in zip(dev_words, y_pred_dev):
+            f.write(word + " " + str(label)+"\n")
+
+    #with open(test_labels, 'w') as f:
+    #    for label in y_pred_dev:
+    #        f.write(str(label)+"\n")
 
 def baselines(training_file, development_file, counts):
     print("========== Baselines ===========\n")
@@ -286,7 +315,7 @@ def classifiers(training_file, development_file, counts):
 
     print("\nMy Classifier")
     print("-----------")
-    my_classifier(training_file, development_file, counts)
+    my_classifier("train/final_training.txt", "train/complex_words_test_unlabeled.txt", counts)
 
 if __name__ == "__main__":
 
