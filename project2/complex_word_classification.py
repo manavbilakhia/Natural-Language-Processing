@@ -85,6 +85,9 @@ def word_length_threshold(training_file, development_file):
         else:
             y_pred_dev.append(0)
     print("Best threshold:", best_threshold)
+    print("training data:")
+    evaluate(y_pred_train, train_labels)
+    print("development data:")
     evaluate(y_pred_dev, dev_labels)
 
 ### 2.3: Word frequency thresholding
