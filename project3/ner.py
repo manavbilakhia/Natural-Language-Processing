@@ -1,27 +1,49 @@
 """Named Entity Recognition as a classification task.
 
-Author: Kristina Striegnitz and <YOUR NAME HERE>
+Author: Kristina Striegnitz and Manav Bilakhia
 
-<HONOR CODE STATEMENT HERE>
+I affirm that I have carried out my academic endeavors with full
+academic honesty. [Manav Bilakhia]
 
-Complete this file for part 1 of the project.
+
+This file contains the Named Entity Recognition (NER) system. 
+It implements a classification based approach to NER.
 """
+import nltk
 from nltk.corpus import conll2002
+nltk.data.path.append('C:\ManavData\college\Courses\CSC483-NLP\CSC483-NLP_projects\project3')
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_fscore_support
 
 def getfeats(word, o):
-    """Take a word and its offset with respect to the word we are trying
+    """
+    Take a word and its offset with respect to the word we are trying
     to classify. Return a list of tuples of the form (feature_name,
     feature_value).
     """
     o = str(o)
     features = [
         (o + 'word', word),
-        # TODO: add more features here.
+        (o + 'is_upper', word.isupper()),
+        (o + 'is_lower', word.islower()),
+        (o + 'is_title', word.istitle()),
+        (o + 'is_digit', word.isdigit()), 
+         # check if word contains an apostrophe
+        (o + 'contains_apostrophe', "'" in word)
     ]
+    if len(word) > 1:
+        features.extend([
+            (o + 'ends_with_s', word.endswith('s')),
+            (o + 'ends_with_ly', word.endswith('ly')),
+            (o + 'ends_with_ing', word.endswith('ing')),
+            (o + 'ends_with_able', word.endswith('able'))
+        ])
+    if '-' in word:
+        features.append((o + 'word.hyphenated', True))
+    if word.endswith('mente'):
+        features.append((o + 'word.adverb', True))
     return features
     
 
@@ -72,7 +94,7 @@ if __name__ == "__main__":
     # test_sents and run it one last time to produce the output file
     # results_classifier.txt. That is the results_classifier.txt you
     # should hand in.
-    for sent in dev_sents:
+    for sent in test_sents:
         for i in range(len(sent)):
             feats = dict(word2features(sent,i))
             test_feats.append(feats)
@@ -87,7 +109,7 @@ if __name__ == "__main__":
     # format is: word gold pred
     j = 0
     with open("results_classifier.txt", "w") as out:
-        for sent in dev_sents:
+        for sent in test_sents:
             for i in range(len(sent)):
                 word = sent[i][0]
                 gold = sent[i][-1]
