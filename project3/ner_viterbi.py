@@ -41,19 +41,20 @@ def getfeats(word, o):
         (o + 'is_lower', word.islower()),
         (o + 'is_title', word.istitle()),
         (o + 'is_digit', word.isdigit()), 
-        (o + 'contains_apostrophe', "'" in word)
+         # check if word contains an apostrophe
+        #(o + 'contains_apostrophe', "'" in word) # no change
     ]
     if len(word) > 1:
         features.extend([
-            (o + 'ends_with_s', word.endswith('s')),
-            (o + 'ends_with_ly', word.endswith('ly')),
-            (o + 'ends_with_ing', word.endswith('ing')),
-            (o + 'ends_with_able', word.endswith('able'))
+            #(o + 'ends_with_s', word.endswith('s')),#60.74 -> 61.14
+            #(o + 'ends_with_ly', word.endswith('ly')),# no change
+            (o + 'ends_with_ing', word.endswith('ing'))
+            #(o + 'ends_with_able', word.endswith('able')) #60.72->60.74
         ])
-    if '-' in word:
-        features.append((o + 'word.hyphenated', True))
-    if word.endswith('mente'):
-        features.append((o + 'word.adverb', True))
+    #if '-' in word: # increased 60.64->60.72
+    #    features.append((o + 'word.hyphenated', True))
+    #if word.endswith('mente'): # no change
+    #    features.append((o + 'word.adverb', True))
     return features
     
 
@@ -84,26 +85,26 @@ def viterbi(obs, memm, pretty_print=False):
     # classifier's output.
 
     # Initialize the trellis
-    trellis = [{}]                                                                          # trellis[i][state] = {"score": score, "backpointer": backpointer}
+    trellis = [{}] # trellis[i][state] = {"score": score, "backpointer": backpointer}
     for state in memm.states:
         features = word2features(obs, 0)
         features["prev_tag"] = "<S>"
-        probs = memm.classifier.predict_log_proba(memm.vectorizer.transform(features))[0]   # probs = [log(p1), log(p2), ...]
+        probs = memm.classifier.predict_log_proba(memm.vectorizer.transform(features))[0] # probs = [log(p1), log(p2), ...]
         score = probs[memm.states.index(state)]
-        trellis[0][state] = {"score": score, "backpointer": None}                        # trellis[0][state] = {"score": score, "backpointer": None}
+        trellis[0][state] = {"score": score, "backpointer": None} # trellis[0][state] = {"score": score, "backpointer": None}
 
     # Fill in the trellis
     for i in range(1, len(obs)):
         trellis.append({})  
         for state in memm.states:
-            max_score = float("-inf")                                                    #we choose the max score as -inf because we are using log probabilities
+            max_score = float("-inf") #we choose the max score as -inf because we are using log probabilities
             max_prev_tag = None
             features = word2features(obs, i)
             for prev_state in memm.states:
-                prev_score = trellis[i-1][prev_state]["score"]                       #get the score of the previous state
+                prev_score = trellis[i-1][prev_state]["score"] #get the score of the previous state
                 features["prev_tag"] = prev_state
                 probs = memm.classifier.predict_log_proba(memm.vectorizer.transform(features))[0]
-                score = prev_score + probs[memm.states.index(state)]              #calculate the score of the current state
+                score = prev_score + probs[memm.states.index(state)] #calculate the score of the current state
                 if score > max_score:
                     max_score = score
                     max_prev_tag = prev_state
@@ -112,11 +113,11 @@ def viterbi(obs, memm, pretty_print=False):
     # Find the highest-scoring path
     best_path = []
     current_tag = max(trellis[-1], key=lambda state: trellis[-1][state]["score"])
-    best_path.append(current_tag)                                                 #append the last tag to the best path
+    best_path.append(current_tag) #append the last tag to the best path
     for i in range(len(obs)-1, 0, -1):
-        current_tag = trellis[i][current_tag]["backpointer"]                   #get the backpointer of the current tag
+        current_tag = trellis[i][current_tag]["backpointer"] #get the backpointer of the current tag
         best_path.append(current_tag)
-    best_path.reverse()                                                        #reverse the best path
+    best_path.reverse() #reverse the best path
 
     # Print the trellis if requested
     if pretty_print:
@@ -193,9 +194,3 @@ if __name__ == "__main__":
         out.write("\n")
 
     print("Now run: python3 conlleval.py results_memm.txt")
-
-
-
-
-
-

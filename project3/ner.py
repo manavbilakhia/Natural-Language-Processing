@@ -31,19 +31,19 @@ def getfeats(word, o):
         (o + 'is_title', word.istitle()),
         (o + 'is_digit', word.isdigit()), 
          # check if word contains an apostrophe
-        (o + 'contains_apostrophe', "'" in word)
+        #(o + 'contains_apostrophe', "'" in word) # no change
     ]
     if len(word) > 1:
         features.extend([
-            (o + 'ends_with_s', word.endswith('s')),
-            (o + 'ends_with_ly', word.endswith('ly')),
-            (o + 'ends_with_ing', word.endswith('ing')),
-            (o + 'ends_with_able', word.endswith('able'))
+            #(o + 'ends_with_s', word.endswith('s')),#60.74 -> 61.14
+            #(o + 'ends_with_ly', word.endswith('ly')),# no change
+            (o + 'ends_with_ing', word.endswith('ing'))
+            #(o + 'ends_with_able', word.endswith('able')) #60.72->60.74
         ])
-    if '-' in word:
-        features.append((o + 'word.hyphenated', True))
-    if word.endswith('mente'):
-        features.append((o + 'word.adverb', True))
+    #if '-' in word: # increased 60.64->60.72
+    #    features.append((o + 'word.hyphenated', True))
+    #if word.endswith('mente'): # no change
+    #    features.append((o + 'word.adverb', True))
     return features
     
 
@@ -119,9 +119,3 @@ if __name__ == "__main__":
         out.write("\n")
 
     print("Now run: python3 conlleval.py results_classifier.txt")
-
-
-
-
-
-
