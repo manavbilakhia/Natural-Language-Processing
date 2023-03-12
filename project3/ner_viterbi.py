@@ -87,7 +87,7 @@ def viterbi(obs, memm, pretty_print=False):
     # Initialize the trellis
     trellis = [{}] # trellis[i][state] = {"score": score, "backpointer": backpointer}
     for state in memm.states:
-        features = word2features(obs, 0)
+        features = dict(word2features(obs, 0))
         features["prev_tag"] = "<S>"
         probs = memm.classifier.predict_log_proba(memm.vectorizer.transform(features))[0] # probs = [log(p1), log(p2), ...]
         score = probs[memm.states.index(state)]
@@ -99,7 +99,7 @@ def viterbi(obs, memm, pretty_print=False):
         for state in memm.states:
             max_score = float("-inf") #we choose the max score as -inf because we are using log probabilities
             max_prev_tag = None
-            features = word2features(obs, i)
+            features = dict(word2features(obs, i))
             for prev_state in memm.states:
                 prev_score = trellis[i-1][prev_state]["score"] #get the score of the previous state
                 features["prev_tag"] = prev_state
@@ -137,6 +137,7 @@ if __name__ == "__main__":
     print("\nTraining ...")
     train_feats = []
     train_labels = []
+    vocab = set()
 
     for sent in train_sents:
         for i in range(len(sent)):
@@ -160,6 +161,9 @@ if __name__ == "__main__":
     model = LogisticRegression(max_iter=400)
     model.fit(X_train, train_labels)
 
+    states = list(set(train_labels))
+    memm = MEMM(list(model.classes_), list(vocab), vectorizer, model)
+
     print("\nTesting ...")
     # While developing use the dev_sents. In the very end, switch to
     # test_sents and run it one last time to produce the output file
@@ -170,15 +174,16 @@ if __name__ == "__main__":
         # TODO: extract the feature representations for the words from
         # the sentence; use the viterbi algorithm to predict labels
         # for this sequence of words; add the result to y_pred
-        feats = []
-        for i in range(len(sent)):
-            feats.append(dict(word2features(sent,i))) # extract the feature representations for the words from the sentence
-            if i == 0:
-                feats[i]["prev_tag"] = "<S>" # the previous tag is <S> if i is the first word in a sentence
-            else:
-                feats[i]["prev_tag"] = sent[i-1][-1] # the previous tag is the tag of the previous word
-        X_test = vectorizer.transform(feats) # transform the features into vectors of numbers
-        y_pred.extend(model.predict(X_test)) # predict the labels for the sequence of words and add the result to y_pred
+        #feats = []
+        #for i in range(len(sent)):
+        #    feats.append(dict(word2features(sent,i))) # extract the feature representations for the words from the sentence
+        #    if i == 0:
+        #        feats[i]["prev_tag"] = "<S>" # the previous tag is <S> if i is the first word in a sentence
+        #    else:
+        #        feats[i]["prev_tag"] = sent[i-1][-1] # the previous tag is the tag of the previous word
+        #X_test = vectorizer.transform(feats) # transform the features into vectors of numbers
+        #y_pred.extend(model.predict(X_test)) # predict the labels for the sequence of words and add the result to y_pred
+        y_pred.extend(viterbi(sent, memm))
 
     print("Writing to results_memm.txt")
     # format is: word gold pred

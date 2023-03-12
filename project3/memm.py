@@ -23,30 +23,3 @@ class MEMM:
     # will need a method that can take a dictionary of features
     # representing a word and the tag chosen for the previous word and
     # return the probabilities of each of the MEMM's states.
-
-    def get_feature_probabilities(self, features, prev_tag):
-        """Given a dictionary of features representing a word and the tag chosen
-        for the previous word, return the probabilities of each of the MEMM's states.
-
-        Args:
-        - features: a dictionary of features representing a word
-        - prev_tag: the tag chosen for the previous word
-
-        Returns:
-        - probabilities: a dictionary mapping each state to its probability
-        """
-        # Add previous tag information to the features
-        features['prev_tag'] = prev_tag
-
-        # Convert features to a feature vector
-        feature_vector = self.vectorizer.transform(features)
-
-        # Get the predicted log probabilities for each state
-        log_probabilities = self.classifier.predict_log_proba(feature_vector)
-
-        # Convert log probabilities to probabilities
-        probabilities = {}
-        for i in range(len(self.states)):
-            probabilities[self.states[i]] = math.exp(log_probabilities[0][i])
-
-        return probabilities
